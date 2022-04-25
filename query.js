@@ -28,7 +28,7 @@ const query = async () => {
 	});
 
 	try {
-		const { results } = await client.query(
+		const { results,...others } = await client.query(
 			`select dv.value,
   (
     select JSON_AGG(og.uid) as v
@@ -54,7 +54,7 @@ from datavalue dv
   inner join categorycombo cc using(categorycomboid)
 limit 10;`
 		);
-		console.log(JSON.stringify(results, null, 2));
+		console.log(JSON.stringify(others, null, 2));
 		// for (const { rows, columns } of results) {
 		// 	const data = rows.map((r) => {
 		// 		return _.fromPairs(
