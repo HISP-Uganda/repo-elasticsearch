@@ -52,7 +52,7 @@ from datavalue dv
   inner join dataelement de using(dataelementid)
   inner join categoryoptioncombo coc using(categoryoptioncomboid)
   inner join categorycombo cc using(categorycomboid)
-limit 10;`
+limit 100;`
 		);
 		console.log(results);
 		// for (const { rows, columns } of results) {
