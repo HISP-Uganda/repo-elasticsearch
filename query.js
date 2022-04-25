@@ -52,9 +52,9 @@ from datavalue dv
   inner join dataelement de using(dataelementid)
   inner join categoryoptioncombo coc using(categoryoptioncomboid)
   inner join categorycombo cc using(categorycomboid)
-limit 100;`
+limit 10;`
 		);
-		console.log(results);
+		console.log(JSON.stringify(results, null, 2));
 		// for (const { rows, columns } of results) {
 		// 	const data = rows.map((r) => {
 		// 		return _.fromPairs(
