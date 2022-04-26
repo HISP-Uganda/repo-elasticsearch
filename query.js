@@ -26,11 +26,12 @@ const generateWeekly = (startDate) => {
 };
 const generateMonthly = (startDate) => {
 	const date = parseISO(startDate);
-	const month = format(date, "yyyyMM");
-	const quarter = format(date, "yyyyQQQ");
-	const year = format(date, "yyyy");
+	console.log(startDate,typeof date);
+	// const month = format(date, "yyyyMM");
+	// const quarter = format(date, "yyyyQQQ");
+	// const year = format(date, "yyyy");
 
-	return { month, quarter, year };
+	return {  };
 };
 const generateQuarterly = (startDate) => {
 	const date = parseISO(startDate);
