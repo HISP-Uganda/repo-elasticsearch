@@ -1,4 +1,4 @@
-import {pgconnect} from "pgwire";
+import { pgconnect } from "pgwire";
 import _ from "lodash";
 import dotenv from "dotenv";
 import axios from "axios";
@@ -54,23 +54,23 @@ from datavalue dv
   inner join categorycombo cc using(categorycomboid)
 limit 10;`
 		);
-		console.log(JSON.stringify(results, null, 2));
-		// for (const { rows, columns } of results) {
-		// 	const data = rows.map((r) => {
-		// 		return _.fromPairs(
-		// 			columns.map(({ name }, index) => {
-		// 				return [name, r[index]];
-		// 			})
-		// 		);
-		// 	});
-		// const all = _.chunk(data, 10000).map((chunk) => {
-		// 	return api.post(`research/index?index=${args[2]}`, {
-		// 		data: chunk,
-		// 	});
-		// });
-		// const response = await Promise.all(all);
-		// console.log(response);
-		// }
+		for (const { rows, columns } of results) {
+			const data = rows.map((r) => {
+				return _.fromPairs(
+					columns.map(({ name }, index) => {
+						return [name, r[index]];
+					})
+				);
+			});
+			console.log(data);
+			// const all = _.chunk(data, 10000).map((chunk) => {
+			// 	return api.post(`research/index?index=${args[2]}`, {
+			// 		data: chunk,
+			// 	});
+			// });
+			// const response = await Promise.all(all);
+			// console.log(response);
+		}
 	} catch (error) {
 		console.log(error.message);
 	} finally {
