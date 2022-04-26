@@ -23,7 +23,6 @@ const generateWeekly = (startDate) => {
 	return { week, month, quarter, year };
 };
 const generateMonthly = (startDate) => {
-	console.log(startDate, typeof date);
 	const month = format(startDate, "yyyyMM");
 	const quarter = format(startDate, "yyyyQQQ");
 	const year = format(startDate, "yyyy");
@@ -136,7 +135,7 @@ where de.uid = $1
 				...getPeriod(r.name, r.startdate),
 			};
 		});
-		console.log(data)[0];
+		console.log(data[0]);
 		const all = _.chunk(data, 10000).map((chunk) => {
 			return api.post(`wal/index?index=${args[3]}`, {
 				data: chunk,
