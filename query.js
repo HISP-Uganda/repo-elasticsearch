@@ -125,6 +125,7 @@ const query = async () => {
 	const client = await pool.connect();
 	try {
 		for (const element of _.chunk(opd, 20)) {
+			console.log(element);
 			const { rows } = await client.query(q, [
 				element.join(","),
 				args[0],
