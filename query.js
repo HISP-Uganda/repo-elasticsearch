@@ -142,7 +142,7 @@ where de.uid = $1
 				...getPeriod(r.name, r.startdate),
 			};
 		});
-		console.log(data);
+		// console.log(data);
 		const all = _.chunk(data, 10000).map((chunk) => {
 			return api.post(`research/index?index=${args[3]}`, {
 				data: chunk,
