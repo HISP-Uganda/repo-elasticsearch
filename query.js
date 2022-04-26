@@ -23,7 +23,7 @@ const query = async () => {
 
 	const client = await pool.connect();
 	try {
-		const results = await client.query(
+		const { rows } = await client.query(
 			`select (
     select JSON_AGG(og.uid) as v
     from orgunitgroup og
@@ -74,7 +74,7 @@ where de.uid = $1
 			[args[0], args[1], args[2]]
 		);
 
-		console.log(results);
+		console.log(rows);
 		// for (const { rows, columns } of results) {
 		// 	const data = rows.map((r) => {
 		// 		return _.fromPairs(
