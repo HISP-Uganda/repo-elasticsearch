@@ -34,7 +34,7 @@
     "moleculer-db": "^0.8.15",
     "moleculer-db-adapter-mongo": "^0.4.13",
     "moleculer-web": "^0.10.2",
-    "pgwire": "^0.6.0"
+    "pgwire": "https://github.com/kagis/pgwire/archive/72b8f43ec25ba58a31f0c3e82862bf122f92df9c.tar.gz"
   },
   "engines": {
     "node": ">= 12.x.x"

@@ -14,7 +14,7 @@ specifiers:
   moleculer-db-adapter-mongo: ^0.4.13
   moleculer-repl: ^0.6.6
   moleculer-web: ^0.10.2
-  pgwire: ^0.6.0
+  pgwire: https://github.com/kagis/pgwire/archive/72b8f43ec25ba58a31f0c3e82862bf122f92df9c.tar.gz
 
 dependencies:
   '@elastic/elasticsearch': 8.1.0
@@ -26,7 +26,7 @@ dependencies:
   moleculer-db: 0.8.17_moleculer@0.14.20
   moleculer-db-adapter-mongo: 0.4.14_moleculer@0.14.20
   moleculer-web: 0.10.4_moleculer@0.14.20
-  pgwire: 0.6.0
+  pgwire: '@github.com/kagis/pgwire/archive/72b8f43ec25ba58a31f0c3e82862bf122f92df9c.tar.gz'
 
 devDependencies:
   eslint: 7.32.0
@@ -3330,11 +3330,6 @@ packages:
     resolution: {integrity: sha512-jczvQbCUS7XmS7o+y1aEO9OBVFeZBQ1MDSEqmO7xSoPgOPoowY/SxLpZ6Vh97/8qHZOteiCKb7gkG9gA2ZUxJA==}
     dev: false
 
-  /pgwire/0.6.0:
-    resolution: {integrity: sha512-3H1gb4iXaqPKxt7w0WX2pqoqliLkyF2RUGI/Y3JHD9Q3i7at7TeE1rbjG9nuui6V1mmv1SQlpjHlCiEJCmvx7A==}
-    engines: {node: '>=10.16.0'}
-    dev: false
-
   /picocolors/1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
     dev: true
@@ -4199,3 +4194,10 @@ packages:
       y18n: 5.0.8
       yargs-parser: 20.2.9
     dev: true
+
+  '@github.com/kagis/pgwire/archive/72b8f43ec25ba58a31f0c3e82862bf122f92df9c.tar.gz':
+    resolution: {tarball: https://github.com/kagis/pgwire/archive/72b8f43ec25ba58a31f0c3e82862bf122f92df9c.tar.gz}
+    name: pgwire
+    version: 0.7.0
+    engines: {node: '>=14.18.0'}
+    dev: false
