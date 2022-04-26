@@ -76,9 +76,9 @@ const query = async () => {
 	console.log(args);
 
 	const client = await pool.connect();
-	try {
-		const { rows } = await client.query(
-			`select (
+	// try {
+	const { rows } = await client.query(
+		`select (
     select JSON_AGG(og.uid) as v
     from orgunitgroup og
       inner join orgunitgroupmembers ogm using(orgunitgroupid)
@@ -125,38 +125,34 @@ from datavalue dv
 where de.uid = $1
   and p.startdate >= $2
   and p.enddate <= $3;`,
-			[args[0], args[1], args[2]]
-		);
+		[args[0], args[1], args[2]]
+	);
 
-		const data = rows.map((r) => {
-			const {
-				categories,
-				levels,
-				...others
-			} = r;
-			const processed = categories.map(({ uid, json_agg }) => {
-				return [uid, _.intersection(json_agg, r.categoryoptions)[0]];
-			});
-			return {
-				...others,
-				..._.fromPairs(processed),
-				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
-				...getPeriod(r.type, r.startdate)	
-			};
+	const data = rows.map((r) => {
+		const { categories, levels, ...others } = r;
+		const processed = categories.map(({ uid, json_agg }) => {
+			return [uid, _.intersection(json_agg, r.categoryoptions)[0]];
 		});
-		console.log(data);
-		const all = _.chunk(data, 10000).map((chunk) => {
-			return api.post(`research/index?index=${args[3]}`, {
-				data: chunk,
-			});
+		return {
+			...others,
+			..._.fromPairs(processed),
+			..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
+			...getPeriod(r.type, r.startdate),
+		};
+	});
+	console.log(data);
+	const all = _.chunk(data, 10000).map((chunk) => {
+		return api.post(`research/index?index=${args[3]}`, {
+			data: chunk,
 		});
-		const response = await Promise.all(all);
-		console.log(response);
-	} catch (error) {
-		console.log(error.message);
-	} finally {
-		client.end();
-	}
+	});
+	const response = await Promise.all(all);
+	console.log(response);
+	// } catch (error) {
+	// 	console.log(error.message);
+	// } finally {
+	client.end();
+	// }
 };
 
 query().then(() => console.log("Done"));
