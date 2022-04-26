@@ -2,48 +2,43 @@ const { Pool } = require("pg");
 const _ = require("lodash");
 const dotenv = require("dotenv");
 const axios = require("axios");
-const { parseISO, format } = require("date-fns");
+const { format } = require("date-fns");
 
 const generateDaily = (startDate) => {
-	const date = parseISO(startDate);
-	const day = format(date, "yyyyMMdd");
-	const week = format(date, "yyyy[W]cc");
-	const month = format(date, "yyyyMM");
-	const quarter = format(date, "yyyyQQQ");
-	const year = format(date, "yyyy");
+	const day = format(startDate, "yyyyMMdd");
+	const week = format(startDate, "yyyy[W]cc");
+	const month = format(startDate, "yyyyMM");
+	const quarter = format(startDate, "yyyyQQQ");
+	const year = format(startDate, "yyyy");
 
 	return { day, week, month, quarter, year };
 };
 
 const generateWeekly = (startDate) => {
-	const date = parseISO(startDate);
-	const week = format(date, "yyyy[W]cc");
-	const month = format(date, "yyyyMM");
-	const quarter = format(date, "yyyyQQQ");
-	const year = format(date, "yyyy");
+	const week = format(startDate, "yyyy[W]cc");
+	const month = format(startDate, "yyyyMM");
+	const quarter = format(startDate, "yyyyQQQ");
+	const year = format(startDate, "yyyy");
 
 	return { week, month, quarter, year };
 };
 const generateMonthly = (startDate) => {
-	// const date = parseISO(startDate);
 	console.log(startDate, typeof date);
 	const month = format(startDate, "yyyyMM");
-	// const quarter = format(date, "yyyyQQQ");
-	// const year = format(date, "yyyy");
+	const quarter = format(startDate, "yyyyQQQ");
+	const year = format(startDate, "yyyy");
 
-	return { month };
+	return { month, quarter, year };
 };
 const generateQuarterly = (startDate) => {
-	const date = parseISO(startDate);
-	const quarter = format(date, "yyyyQQQ");
-	const year = format(date, "yyyy");
+	const quarter = format(startDate, "yyyyQQQ");
+	const year = format(startDate, "yyyy");
 
 	return { quarter, year };
 };
 
 const generateYearly = (startDate) => {
-	const date = parseISO(startDate);
-	const year = format(date, "yyyy");
+	const year = format(startDate, "yyyy");
 
 	return { year };
 };
@@ -51,11 +46,11 @@ const generateYearly = (startDate) => {
 const getPeriod = (type, startDate) => {
 	console.log(startDate, type);
 	const all = {
-		// Daily: generateDaily(startDate),
-		// Weekly: generateWeekly(startDate),
+		Daily: generateDaily(startDate),
+		Weekly: generateWeekly(startDate),
 		Monthly: generateMonthly(startDate),
-		// Quarterly: generateQuarterly(startDate),
-		// Yearly: generateYearly(startDate),
+		Quarterly: generateQuarterly(startDate),
+		Yearly: generateYearly(startDate),
 	};
 	return all[type] || {};
 };
@@ -144,7 +139,7 @@ where de.uid = $1
 		});
 		console.log(data)[0];
 		const all = _.chunk(data, 10000).map((chunk) => {
-			return api.post(`research/index?index=${args[3]}`, {
+			return api.post(`wal/index?index=${args[3]}`, {
 				data: chunk,
 			});
 		});
