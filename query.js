@@ -135,6 +135,7 @@ where de.uid = $1
 				sourceid,
 				categoryoptioncomboid,
 				attributeoptioncomboid,
+				value,
 				...others
 			} = r;
 			const processed = categories.map(({ uid, json_agg }) => {
@@ -152,6 +153,7 @@ where de.uid = $1
 				..._.fromPairs(processed),
 				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
 				...getPeriod(r.name, r.startdate),
+				value: Number(value),
 			};
 		});
 		console.log(data[0]);
