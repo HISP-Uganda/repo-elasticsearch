@@ -18,43 +18,58 @@ const pool = new Pool({
 	database: process.env.PG_DATABASE,
 });
 const query = async () => {
-	const hirarchy = {
-		0: "national",
-		1: "region",
-		2: "district",
-		3: "subcounty",
-		4: "facility",
-	};
-	// const args = process.argv.slice(2);
-
+	const args = process.argv.slice(2);
 	const client = await pool.connect();
-
 	try {
 		const results = await client.query(
-			`select dv.value,
-  (
+			`select (
     select JSON_AGG(og.uid) as v
     from orgunitgroup og
       inner join orgunitgroupmembers ogm using(orgunitgroupid)
     where organisationunitid = dv.sourceid
   ) groupings,
   array_to_json(string_to_array(LTRIM(o.path, '/'), '/'))::jsonb as levels,
-  de.uid as dataElement,
-  cc.uid as categoryCombo,
-  o.uid orgUnit,
+  de.uid as dx,
+  cc.uid as co,
+  o.uid as ou,
+  o.hierarchylevel,
   (
     select JSON_AGG(deco.uid)
     from dataelementcategoryoption deco
     where deco.name in(
         select unnest (string_to_array(coc.name, ', ')::text [])
       )
-  ) categoryOptions
+  ) categoryOptions,
+  (
+    select JSON_AGG(row_to_json(t))
+    from categorycombos_categories ccc
+      inner join (
+        select dec.categoryid,
+          dec.uid,
+          JSON_AGG(deco.uid)
+        from dataelementcategoryoption deco
+          inner join categories_categoryoptions ccc using(categoryoptionid)
+          inner join dataelementcategory dec using(categoryid)
+        group by dec.uid,
+          dec.categoryid
+      ) t using(categoryid)
+    where ccc.categorycomboid = cc.categorycomboid
+  ) categories,
+  p.startdate,
+  p.enddate,
+  pt.name,
+  dv.value
 from datavalue dv
   inner join organisationunit o on(o.organisationunitid = dv.sourceid)
   inner join dataelement de using(dataelementid)
   inner join categoryoptioncombo coc using(categoryoptioncomboid)
   inner join categorycombo cc using(categorycomboid)
-limit 10;`
+  inner join period p using(periodid)
+  inner join periodtype pt using(periodtypeid)
+where de.uid = '$1'
+  and p.startdate >= '$2'
+  and p.enddate <= '$3';`,
+			[args[0], args[1], args[2]]
 		);
 
 		console.log(results);
