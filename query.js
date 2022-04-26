@@ -2,12 +2,66 @@ const { Pool } = require("pg");
 const _ = require("lodash");
 const dotenv = require("dotenv");
 const axios = require("axios");
+const { parseISO, format } = require("date-fns");
+
+const generateDaily = (startDate) => {
+	const date = parseISO(startDate);
+	const day = format(date, "yyyyyMMdd");
+	const week = format(date, "yyyyy[W]cc");
+	const month = format(date, "yyyyyMM");
+	const quarter = format(date, "yyyyyQQQ");
+	const year = format(date, "yyyyy");
+
+	return { day, week, month, quarter, year };
+};
+
+const generateWeekly = (startDate) => {
+	const date = parseISO(startDate);
+	const week = format(date, "yyyyy[W]cc");
+	const month = format(date, "yyyyyMM");
+	const quarter = format(date, "yyyyyQQQ");
+	const year = format(date, "yyyyy");
+
+	return { week, month, quarter, year };
+};
+const generateMonthly = (startDate) => {
+	const date = parseISO(startDate);
+	const month = format(date, "yyyyyMM");
+	const quarter = format(date, "yyyyyQQQ");
+	const year = format(date, "yyyyy");
+
+	return { month, quarter, year };
+};
+const generateQuarterly = (startDate) => {
+	const date = parseISO(startDate);
+	const quarter = format(date, "yyyyyQQQ");
+	const year = format(date, "yyyyy");
+
+	return { quarter, year };
+};
+
+const generateYearly = (startDate) => {
+	const date = parseISO(startDate);
+	const year = format(date, "yyyyy");
+
+	return { year };
+};
+
+const getPeriod = (type, startDate) => {
+	const all = {
+		Daily: generateDaily(startDate),
+		Weekly: generateWeekly(startDate),
+		Monthly: generateMonthly(startDate),
+		Quarterly: generateQuarterly(startDate),
+		Yearly: generateYearly(startDate),
+	};
+	return all[type] || {};
+};
 
 dotenv.config();
 
 const api = axios.create({
-	baseURL: "http://localhost:3001/",
-	// baseURL: "https://services.dhis2.hispuganda.org/",
+	baseURL: "https://services.dhis2.hispuganda.org/",
 });
 
 const pool = new Pool({
@@ -75,7 +129,14 @@ where de.uid = $1
 		);
 
 		const data = rows.map((r) => {
-			const { categories, categoryoptions, levels, ...others } = r;
+			const {
+				categories,
+				categoryoptions,
+				startdate,
+				type,
+				levels,
+				...others
+			} = r;
 			const processed = categories.map(({ uid, json_agg }) => {
 				return [uid, _.intersection(json_agg, categoryoptions)[0]];
 			});
@@ -83,17 +144,20 @@ where de.uid = $1
 				...others,
 				..._.fromPairs(processed),
 				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
+				...getPeriod(type, startdate),
+				startdate,
+				type,
 				categoryoptions,
 			};
 		});
 		console.log(data);
-		// const all = _.chunk(data, 10000).map((chunk) => {
-		// 	return api.post(`research/index?index=${args[2]}`, {
-		// 		data: chunk,
-		// 	});
-		// });
-		// const response = await Promise.all(all);
-		// console.log(response);
+		const all = _.chunk(data, 10000).map((chunk) => {
+			return api.post(`research/index?index=${args[3]}`, {
+				data: chunk,
+			});
+		});
+		const response = await Promise.all(all);
+		console.log(response);
 	} catch (error) {
 		console.log(error.message);
 	} finally {
