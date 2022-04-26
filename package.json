@@ -1,6 +1,7 @@
 {
   "name": "repo-elasticsearch",
   "version": "1.0.0",
+  "type": "module",
   "description": "My Moleculer-based microservices project",
   "scripts": {
     "dev": "moleculer-runner --repl --hot services/**/*.service.js",
@@ -37,7 +38,7 @@
     "pgwire": "https://github.com/kagis/pgwire/archive/72b8f43ec25ba58a31f0c3e82862bf122f92df9c.tar.gz"
   },
   "engines": {
-    "node": ">= 12.x.x"
+    "node": ">=14.18.0"
   },
   "jest": {
     "coverageDirectory": "../coverage",

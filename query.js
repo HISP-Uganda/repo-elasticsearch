@@ -1,7 +1,7 @@
-const pgwire = require("pgwire");
-const _ = require("lodash");
-const dotenv = require("dotenv");
-const axios = require("axios");
+import {pgconnect} from "pgwire";
+import _ from "lodash";
+import dotenv from "dotenv";
+import axios from "axios";
 
 dotenv.config();
 
@@ -19,7 +19,7 @@ const query = async () => {
 	};
 	// const args = process.argv.slice(2);
 
-	const client = await pgwire.pgconnect({
+	const client = await pgconnect({
 		user: process.env.PG_USER,
 		password: process.env.PG_PASSWORD,
 		hostname: process.env.PG_HOST,
