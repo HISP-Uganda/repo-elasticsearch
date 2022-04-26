@@ -6,43 +6,43 @@ const { parseISO, format } = require("date-fns");
 
 const generateDaily = (startDate) => {
 	const date = parseISO(startDate);
-	const day = format(date, "yyyyyMMdd");
-	const week = format(date, "yyyyy[W]cc");
-	const month = format(date, "yyyyyMM");
-	const quarter = format(date, "yyyyyQQQ");
-	const year = format(date, "yyyyy");
+	const day = format(date, "yyyyMMdd");
+	const week = format(date, "yyyy[W]cc");
+	const month = format(date, "yyyyMM");
+	const quarter = format(date, "yyyyQQQ");
+	const year = format(date, "yyyy");
 
 	return { day, week, month, quarter, year };
 };
 
 const generateWeekly = (startDate) => {
 	const date = parseISO(startDate);
-	const week = format(date, "yyyyy[W]cc");
-	const month = format(date, "yyyyyMM");
-	const quarter = format(date, "yyyyyQQQ");
-	const year = format(date, "yyyyy");
+	const week = format(date, "yyyy[W]cc");
+	const month = format(date, "yyyyMM");
+	const quarter = format(date, "yyyyQQQ");
+	const year = format(date, "yyyy");
 
 	return { week, month, quarter, year };
 };
 const generateMonthly = (startDate) => {
 	const date = parseISO(startDate);
-	const month = format(date, "yyyyyMM");
-	const quarter = format(date, "yyyyyQQQ");
-	const year = format(date, "yyyyy");
+	const month = format(date, "yyyyMM");
+	const quarter = format(date, "yyyyQQQ");
+	const year = format(date, "yyyy");
 
 	return { month, quarter, year };
 };
 const generateQuarterly = (startDate) => {
 	const date = parseISO(startDate);
-	const quarter = format(date, "yyyyyQQQ");
-	const year = format(date, "yyyyy");
+	const quarter = format(date, "yyyyQQQ");
+	const year = format(date, "yyyy");
 
 	return { quarter, year };
 };
 
 const generateYearly = (startDate) => {
 	const date = parseISO(startDate);
-	const year = format(date, "yyyyy");
+	const year = format(date, "yyyy");
 
 	return { year };
 };
@@ -50,10 +50,10 @@ const generateYearly = (startDate) => {
 const getPeriod = (type, startDate) => {
 	const all = {
 		Daily: generateDaily(startDate),
-		// Weekly: generateWeekly(startDate),
-		// Monthly: generateMonthly(startDate),
-		// Quarterly: generateQuarterly(startDate),
-		// Yearly: generateYearly(startDate),
+		Weekly: generateWeekly(startDate),
+		Monthly: generateMonthly(startDate),
+		Quarterly: generateQuarterly(startDate),
+		Yearly: generateYearly(startDate),
 	};
 	return all[type] || {};
 };
@@ -76,9 +76,9 @@ const query = async () => {
 	console.log(args);
 
 	const client = await pool.connect();
-	// try {
-	const { rows } = await client.query(
-		`select (
+	try {
+		const { rows } = await client.query(
+			`select (
     select JSON_AGG(og.uid) as v
     from orgunitgroup og
       inner join orgunitgroupmembers ogm using(orgunitgroupid)
@@ -125,34 +125,34 @@ from datavalue dv
 where de.uid = $1
   and p.startdate >= $2
   and p.enddate <= $3;`,
-		[args[0], args[1], args[2]]
-	);
+			[args[0], args[1], args[2]]
+		);
 
-	const data = rows.map((r) => {
-		const { categories, levels, ...others } = r;
-		const processed = categories.map(({ uid, json_agg }) => {
-			return [uid, _.intersection(json_agg, r.categoryoptions)[0]];
+		const data = rows.map((r) => {
+			const { categories, levels, ...others } = r;
+			const processed = categories.map(({ uid, json_agg }) => {
+				return [uid, _.intersection(json_agg, r.categoryoptions)[0]];
+			});
+			return {
+				...others,
+				..._.fromPairs(processed),
+				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
+				...getPeriod(r.type, r.startdate),
+			};
 		});
-		return {
-			...others,
-			..._.fromPairs(processed),
-			..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
-			...getPeriod(r.type, r.startdate),
-		};
-	});
-	console.log(data);
-	const all = _.chunk(data, 10000).map((chunk) => {
-		return api.post(`research/index?index=${args[3]}`, {
-			data: chunk,
+		console.log(data);
+		const all = _.chunk(data, 10000).map((chunk) => {
+			return api.post(`research/index?index=${args[3]}`, {
+				data: chunk,
+			});
 		});
-	});
-	const response = await Promise.all(all);
-	console.log(response);
-	// } catch (error) {
-	// 	console.log(error.message);
-	// } finally {
-	client.end();
-	// }
+		const response = await Promise.all(all);
+		console.log(response);
+	} catch (error) {
+		console.log(error.message);
+	} finally {
+		client.end();
+	}
 };
 
 query().then(() => console.log("Done"));
