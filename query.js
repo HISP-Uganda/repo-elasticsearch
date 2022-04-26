@@ -1,5 +1,5 @@
 const { Pool } = require("pg");
-// const {}= require("lodash");
+const _ = require("lodash");
 const dotenv = require("dotenv");
 const axios = require("axios");
 
@@ -74,16 +74,19 @@ where de.uid = $1
 			[args[0], args[1], args[2]]
 		);
 
-		console.log(rows);
-		// for (const { rows, columns } of results) {
-		// 	const data = rows.map((r) => {
-		// 		return _.fromPairs(
-		// 			columns.map(({ name }, index) => {
-		// 				return [name, r[index]];
-		// 			})
-		// 		);
-		// 	});
-		// console.log(data);
+		const data = rows.map((r) => {
+			const { categories, categoryoptions, levels, ...others } = r;
+			categories.map(({ uid, json_agg }) => {
+				return [uid, _.intersection(json_agg, categoryoptions)[0]];
+			});
+			return {
+				...others,
+				..._.fromPairs(categories),
+				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
+				categoryoptions,
+			};
+		});
+		console.log(data);
 		// const all = _.chunk(data, 10000).map((chunk) => {
 		// 	return api.post(`research/index?index=${args[2]}`, {
 		// 		data: chunk,
@@ -91,7 +94,6 @@ where de.uid = $1
 		// });
 		// const response = await Promise.all(all);
 		// console.log(response);
-		// }
 	} catch (error) {
 		console.log(error.message);
 	} finally {
