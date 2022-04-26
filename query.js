@@ -48,12 +48,13 @@ const generateYearly = (startDate) => {
 };
 
 const getPeriod = (type, startDate) => {
+	console.log(startDate, type);
 	const all = {
 		// Daily: generateDaily(startDate),
 		// Weekly: generateWeekly(startDate),
-		Monthly: generateMonthly(startDate),
-		Quarterly: generateQuarterly(startDate),
-		Yearly: generateYearly(startDate),
+		// Monthly: generateMonthly(startDate),
+		// Quarterly: generateQuarterly(startDate),
+		// Yearly: generateYearly(startDate),
 	};
 	return all[type] || {};
 };
