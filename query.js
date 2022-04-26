@@ -121,15 +121,12 @@ const pool = new Pool({
 });
 const query = async () => {
 	const args = process.argv.slice(2);
-
 	const client = await pool.connect();
+	let finished = 0;
 	try {
 		for (const element of opd) {
-			const { rows } = await client.query(q, [
-				element,
-				args[0],
-				args[1],
-			]);
+			finished = finished + 1;
+			const { rows } = await client.query(q, [element, args[0], args[1]]);
 			const data = rows.map((r) => {
 				const {
 					categories,
@@ -165,8 +162,9 @@ const query = async () => {
 					data: chunk,
 				});
 			});
-			const response = await Promise.all(all);
-			console.log(response);
+			const { data: dr } = await Promise.all(all);
+			console.log(dr);
+			console.log(`Finished ${finished} of ${opd.length}`);
 		}
 	} catch (error) {
 		console.log(error.message);
