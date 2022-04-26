@@ -1,13 +1,21 @@
-import { pgconnect } from "pgwire";
-import _ from "lodash";
-import dotenv from "dotenv";
-import axios from "axios";
+const { Pool } = require("pg");
+// const {}= require("lodash");
+const dotenv = require("dotenv");
+const axios = require("axios");
 
 dotenv.config();
 
 const api = axios.create({
 	baseURL: "http://localhost:3001/",
 	// baseURL: "https://services.dhis2.hispuganda.org/",
+});
+
+const pool = new Pool({
+	user: process.env.PG_USER,
+	password: process.env.PG_PASSWORD,
+	hostname: process.env.PG_HOST,
+	port: process.env.PG_PORT,
+	database: process.env.PG_DATABASE,
 });
 const query = async () => {
 	const hirarchy = {
@@ -19,16 +27,10 @@ const query = async () => {
 	};
 	// const args = process.argv.slice(2);
 
-	const client = await pgconnect({
-		user: process.env.PG_USER,
-		password: process.env.PG_PASSWORD,
-		hostname: process.env.PG_HOST,
-		port: process.env.PG_PORT,
-		database: process.env.PG_DATABASE,
-	});
+	const client = await pool.connect();
 
 	try {
-		const { results } = await client.query(
+		const results = await client.query(
 			`select dv.value,
   (
     select JSON_AGG(og.uid) as v
@@ -54,23 +56,25 @@ from datavalue dv
   inner join categorycombo cc using(categorycomboid)
 limit 10;`
 		);
-		for (const { rows, columns } of results) {
-			const data = rows.map((r) => {
-				return _.fromPairs(
-					columns.map(({ name }, index) => {
-						return [name, r[index]];
-					})
-				);
-			});
-			console.log(data);
-			// const all = _.chunk(data, 10000).map((chunk) => {
-			// 	return api.post(`research/index?index=${args[2]}`, {
-			// 		data: chunk,
-			// 	});
-			// });
-			// const response = await Promise.all(all);
-			// console.log(response);
-		}
+
+		console.log(results);
+		// for (const { rows, columns } of results) {
+		// 	const data = rows.map((r) => {
+		// 		return _.fromPairs(
+		// 			columns.map(({ name }, index) => {
+		// 				return [name, r[index]];
+		// 			})
+		// 		);
+		// 	});
+		// console.log(data);
+		// const all = _.chunk(data, 10000).map((chunk) => {
+		// 	return api.post(`research/index?index=${args[2]}`, {
+		// 		data: chunk,
+		// 	});
+		// });
+		// const response = await Promise.all(all);
+		// console.log(response);
+		// }
 	} catch (error) {
 		console.log(error.message);
 	} finally {
