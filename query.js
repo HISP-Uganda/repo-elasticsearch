@@ -53,7 +53,7 @@ from datavalue dv
   inner join categorycombo cc using(categorycomboid)
   inner join period p using(periodid)
   inner join periodtype pt using(periodtypeid)
-where de.uid in $1
+where de.uid in ($1)
   and p.startdate >= $2
   and p.enddate <= $3;`;
 
