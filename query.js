@@ -52,7 +52,7 @@ const getPeriod = (type, startDate) => {
 	const all = {
 		// Daily: generateDaily(startDate),
 		// Weekly: generateWeekly(startDate),
-		// Monthly: generateMonthly(startDate),
+		Monthly: generateMonthly(startDate),
 		// Quarterly: generateQuarterly(startDate),
 		// Yearly: generateYearly(startDate),
 	};
@@ -138,7 +138,7 @@ where de.uid = $1
 				...others,
 				..._.fromPairs(processed),
 				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
-				...getPeriod(r.type, r.startdate),
+				...getPeriod(r.name, r.startdate),
 			};
 		});
 		console.log(data);
