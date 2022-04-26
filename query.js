@@ -19,6 +19,8 @@ const pool = new Pool({
 });
 const query = async () => {
 	const args = process.argv.slice(2);
+	console.log(args);
+
 	const client = await pool.connect();
 	try {
 		const results = await client.query(
