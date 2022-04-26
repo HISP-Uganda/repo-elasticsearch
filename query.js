@@ -6,7 +6,7 @@ const { format } = require("date-fns");
 
 const generateDaily = (startDate) => {
 	const day = format(startDate, "yyyyMMdd");
-	const week = format(startDate, "yyyy[W]cc");
+	const week = format(startDate, "yyyy'W'cc");
 	const month = format(startDate, "yyyyMM");
 	const quarter = format(startDate, "yyyyQQQ");
 	const year = format(startDate, "yyyy");
@@ -44,7 +44,6 @@ const generateYearly = (startDate) => {
 };
 
 const getPeriod = (type, startDate) => {
-	console.log(startDate, type);
 	const all = {
 		Daily: generateDaily(startDate),
 		Weekly: generateWeekly(startDate),
