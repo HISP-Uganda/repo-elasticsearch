@@ -156,7 +156,6 @@ where de.uid = $1
 				value: Number(value),
 			};
 		});
-		console.log(data[0]);
 		const all = _.chunk(data, 10000).map((chunk) => {
 			return api.post(`wal/index?index=${args[3]}`, {
 				data: chunk,
