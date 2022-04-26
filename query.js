@@ -131,23 +131,17 @@ where de.uid = $1
 		const data = rows.map((r) => {
 			const {
 				categories,
-				categoryoptions,
-				startdate,
-				type,
 				levels,
 				...others
 			} = r;
 			const processed = categories.map(({ uid, json_agg }) => {
-				return [uid, _.intersection(json_agg, categoryoptions)[0]];
+				return [uid, _.intersection(json_agg, r.categoryoptions)[0]];
 			});
 			return {
 				...others,
 				..._.fromPairs(processed),
 				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
-				...getPeriod(type, startdate),
-				startdate,
-				type,
-				categoryoptions,
+				...getPeriod(r.type, r.startdate)	
 			};
 		});
 		console.log(data);
