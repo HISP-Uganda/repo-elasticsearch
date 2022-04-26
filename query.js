@@ -25,13 +25,13 @@ const generateWeekly = (startDate) => {
 	return { week, month, quarter, year };
 };
 const generateMonthly = (startDate) => {
-	const date = parseISO(startDate);
-	console.log(startDate,typeof date);
-	// const month = format(date, "yyyyMM");
+	// const date = parseISO(startDate);
+	console.log(startDate, typeof date);
+	const month = format(startDate, "yyyyMM");
 	// const quarter = format(date, "yyyyQQQ");
 	// const year = format(date, "yyyy");
 
-	return {  };
+	return { month };
 };
 const generateQuarterly = (startDate) => {
 	const date = parseISO(startDate);
@@ -142,7 +142,7 @@ where de.uid = $1
 				...getPeriod(r.name, r.startdate),
 			};
 		});
-		// console.log(data);
+		console.log(data)[0];
 		const all = _.chunk(data, 10000).map((chunk) => {
 			return api.post(`research/index?index=${args[3]}`, {
 				data: chunk,
