@@ -4,6 +4,59 @@ const dotenv = require("dotenv");
 const axios = require("axios");
 const { format } = require("date-fns");
 
+const opd = require("./opd.json");
+
+const q = `select (
+    select JSON_AGG(og.uid) as v
+    from orgunitgroup og
+      inner join orgunitgroupmembers ogm using(orgunitgroupid)
+    where organisationunitid = dv.sourceid
+  ) groupings,
+  array_to_json(string_to_array(LTRIM(o.path, '/'), '/'))::jsonb as levels,
+  de.uid as dx,
+  coc.uid as co,
+	coca.uid as ao,
+	cc.uid as c,
+  o.uid as ou,
+  o.hierarchylevel,
+  (
+    select JSON_AGG(deco.uid)
+    from dataelementcategoryoption deco
+    where deco.name in(
+        select unnest (string_to_array(coc.name, ', ')::text [])
+      )
+  ) categoryOptions,
+  (
+    select JSON_AGG(row_to_json(t))
+    from categorycombos_categories ccc
+      inner join (
+        select dec.categoryid,
+          dec.uid,
+          JSON_AGG(deco.uid)
+        from dataelementcategoryoption deco
+          inner join categories_categoryoptions ccc using(categoryoptionid)
+          inner join dataelementcategory dec using(categoryid)
+        group by dec.uid,
+          dec.categoryid
+      ) t using(categoryid)
+    where ccc.categorycomboid = cc.categorycomboid
+  ) categories,
+  p.startdate,
+  p.enddate,
+  pt.name,
+  dv.*
+from datavalue dv
+  inner join organisationunit o on(o.organisationunitid = dv.sourceid)
+  inner join dataelement de using(dataelementid)
+  inner join categoryoptioncombo coc using(categoryoptioncomboid)
+	inner join categoryoptioncombo coca on(coca.categoryoptioncomboid = dv.attributeoptioncomboid)
+  inner join categorycombo cc using(categorycomboid)
+  inner join period p using(periodid)
+  inner join periodtype pt using(periodtypeid)
+where de.uid in ($1)
+  and p.startdate >= $2
+  and p.enddate <= $3;`;
+
 const generateDaily = (startDate) => {
 	const day = format(startDate, "yyyyMMdd");
 	const week = format(startDate, "yyyy'W'cc");
@@ -68,101 +121,53 @@ const pool = new Pool({
 });
 const query = async () => {
 	const args = process.argv.slice(2);
-	console.log(args);
 
 	const client = await pool.connect();
 	try {
-		const { rows } = await client.query(
-			`select (
-    select JSON_AGG(og.uid) as v
-    from orgunitgroup og
-      inner join orgunitgroupmembers ogm using(orgunitgroupid)
-    where organisationunitid = dv.sourceid
-  ) groupings,
-  array_to_json(string_to_array(LTRIM(o.path, '/'), '/'))::jsonb as levels,
-  de.uid as dx,
-  coc.uid as co,
-	coca.uid as ao,
-	cc.uid as c,
-  o.uid as ou,
-  o.hierarchylevel,
-  (
-    select JSON_AGG(deco.uid)
-    from dataelementcategoryoption deco
-    where deco.name in(
-        select unnest (string_to_array(coc.name, ', ')::text [])
-      )
-  ) categoryOptions,
-  (
-    select JSON_AGG(row_to_json(t))
-    from categorycombos_categories ccc
-      inner join (
-        select dec.categoryid,
-          dec.uid,
-          JSON_AGG(deco.uid)
-        from dataelementcategoryoption deco
-          inner join categories_categoryoptions ccc using(categoryoptionid)
-          inner join dataelementcategory dec using(categoryid)
-        group by dec.uid,
-          dec.categoryid
-      ) t using(categoryid)
-    where ccc.categorycomboid = cc.categorycomboid
-  ) categories,
-  p.startdate,
-  p.enddate,
-  pt.name,
-  dv.*
-from datavalue dv
-  inner join organisationunit o on(o.organisationunitid = dv.sourceid)
-  inner join dataelement de using(dataelementid)
-  inner join categoryoptioncombo coc using(categoryoptioncomboid)
-	inner join categoryoptioncombo coca on(coca.categoryoptioncomboid = dv.attributeoptioncomboid)
-  inner join categorycombo cc using(categorycomboid)
-  inner join period p using(periodid)
-  inner join periodtype pt using(periodtypeid)
-where de.uid = $1
-  and p.startdate >= $2
-  and p.enddate <= $3;`,
-			[args[0], args[1], args[2]]
-		);
-
-		const data = rows.map((r) => {
-			const {
-				categories,
-				levels,
-				dataelementid,
-				periodid,
-				sourceid,
-				categoryoptioncomboid,
-				attributeoptioncomboid,
-				value,
-				...others
-			} = r;
-			const processed = categories.map(({ uid, json_agg }) => {
-				return [uid, _.intersection(json_agg, r.categoryoptions)[0]];
-			});
-			return {
-				id: `${[
+		for (const element of _.chunk(opd, 20)) {
+			const { rows } = await client.query(q, [
+				element.join(","),
+				args[0],
+				args[1],
+			]);
+			const data = rows.map((r) => {
+				const {
+					categories,
+					levels,
 					dataelementid,
 					periodid,
 					sourceid,
 					categoryoptioncomboid,
 					attributeoptioncomboid,
-				].join("")}`,
-				...others,
-				..._.fromPairs(processed),
-				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
-				...getPeriod(r.name, r.startdate),
-				value: Number(value),
-			};
-		});
-		const all = _.chunk(data, 10000).map((chunk) => {
-			return api.post(`wal/index?index=${args[3]}`, {
-				data: chunk,
+					value,
+					...others
+				} = r;
+				const processed = categories.map(({ uid, json_agg }) => {
+					return [uid, _.intersection(json_agg, r.categoryoptions)[0]];
+				});
+				return {
+					id: `${[
+						dataelementid,
+						periodid,
+						sourceid,
+						categoryoptioncomboid,
+						attributeoptioncomboid,
+					].join("")}`,
+					...others,
+					..._.fromPairs(processed),
+					..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
+					...getPeriod(r.name, r.startdate),
+					value: Number(value),
+				};
 			});
-		});
-		const response = await Promise.all(all);
-		console.log(response);
+			const all = _.chunk(data, 10000).map((chunk) => {
+				return api.post(`wal/index?index=${args[2]}`, {
+					data: chunk,
+				});
+			});
+			const response = await Promise.all(all);
+			console.log(response);
+		}
 	} catch (error) {
 		console.log(error.message);
 	} finally {
