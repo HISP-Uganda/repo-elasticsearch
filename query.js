@@ -127,7 +127,7 @@ const query = async () => {
 		for (const element of _.chunk(opd, 20)) {
 			console.log(element);
 			const { rows } = await client.query(q, [
-				element.join(","),
+				element,
 				args[0],
 				args[1],
 			]);
