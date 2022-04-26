@@ -76,12 +76,12 @@ where de.uid = $1
 
 		const data = rows.map((r) => {
 			const { categories, categoryoptions, levels, ...others } = r;
-			categories.map(({ uid, json_agg }) => {
+			const processed = categories.map(({ uid, json_agg }) => {
 				return [uid, _.intersection(json_agg, categoryoptions)[0]];
 			});
 			return {
 				...others,
-				..._.fromPairs(categories),
+				..._.fromPairs(processed),
 				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
 				categoryoptions,
 			};
