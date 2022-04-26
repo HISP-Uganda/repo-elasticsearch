@@ -15,7 +15,7 @@ const generateDaily = (startDate) => {
 };
 
 const generateWeekly = (startDate) => {
-	const week = format(startDate, "yyyy[W]cc");
+	const week = format(startDate, "yyyy'W'cc");
 	const month = format(startDate, "yyyyMM");
 	const quarter = format(startDate, "yyyyQQQ");
 	const year = format(startDate, "yyyy");
