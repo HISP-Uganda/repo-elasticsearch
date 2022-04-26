@@ -81,7 +81,9 @@ const query = async () => {
   ) groupings,
   array_to_json(string_to_array(LTRIM(o.path, '/'), '/'))::jsonb as levels,
   de.uid as dx,
-  cc.uid as co,
+  coc.uid as co,
+	coca.uid as ao,
+	cc.uid as c,
   o.uid as ou,
   o.hierarchylevel,
   (
@@ -109,11 +111,12 @@ const query = async () => {
   p.startdate,
   p.enddate,
   pt.name,
-  dv.value
+  dv.*
 from datavalue dv
   inner join organisationunit o on(o.organisationunitid = dv.sourceid)
   inner join dataelement de using(dataelementid)
   inner join categoryoptioncombo coc using(categoryoptioncomboid)
+	inner join categoryoptioncombo coca on(coca.categoryoptioncomboid = dv.attributeoptioncomboid)
   inner join categorycombo cc using(categorycomboid)
   inner join period p using(periodid)
   inner join periodtype pt using(periodtypeid)
@@ -124,11 +127,27 @@ where de.uid = $1
 		);
 
 		const data = rows.map((r) => {
-			const { categories, levels, ...others } = r;
+			const {
+				categories,
+				levels,
+				dataelementid,
+				periodid,
+				sourceid,
+				categoryoptioncomboid,
+				attributeoptioncomboid,
+				...others
+			} = r;
 			const processed = categories.map(({ uid, json_agg }) => {
 				return [uid, _.intersection(json_agg, r.categoryoptions)[0]];
 			});
 			return {
+				id: `${[
+					dataelementid,
+					periodid,
+					sourceid,
+					categoryoptioncomboid,
+					attributeoptioncomboid,
+				].join("")}`,
 				...others,
 				..._.fromPairs(processed),
 				..._.fromPairs(levels.map((l, i) => [`level${i + 1}`, l])),
