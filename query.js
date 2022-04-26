@@ -162,8 +162,8 @@ const query = async () => {
 					data: chunk,
 				});
 			});
-			const { data: dr } = await Promise.all(all);
-			console.log(dr);
+			const response = await Promise.all(all);
+			console.log(response.map(({ data }) => data));
 			console.log(`Finished ${finished} of ${opd.length}`);
 		}
 	} catch (error) {
